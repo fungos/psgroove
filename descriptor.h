@@ -19,11 +19,12 @@
 
 #include "PL3/shellcode_egghunt.h"
 
-
 #define MAGIC_NUMBER		0x50, 0x53, 0x47, 0x72, 0x6f, 0x6f, 0x76, 0x65
 
 #if defined (FIRMWARE_3_41)
 #define RTOC_TABLE		0x80, 0x00, 0x00, 0x00, 0x00, 0x33, 0xe7, 0x20
+#elif defined (FIRMWARE_3_21)
+#define RTOC_TABLE		0x80, 0x00, 0x00, 0x00, 0x00, 0x33, 0xda, 0x90
 #elif defined (FIRMWARE_3_15)
 #define RTOC_TABLE		0x80, 0x00, 0x00, 0x00, 0x00, 0x33, 0xda, 0x10
 #elif defined (FIRMWARE_3_10)
@@ -40,11 +41,14 @@
 #define default_shellcode_macro shellcode_egghunt_macro
 
 #define PAYLOAD_FW_DEPENDENT
-#define PAYLOAD payload_dev
+#define PAYLOAD payload_dump_elfs
 
 #if defined (FIRMWARE_3_41)
 #define FIRMWARE 3_41
 #define SHELLCODE_ADDR_BASE	0x80, 0x00, 0x00, 0x00, 0x00, 0x3d, 0xee, 0x70
+#elif defined (FIRMWARE_3_21)
+#define FIRMWARE 3_21
+#define SHELLCODE_ADDR_BASE	0x80, 0x00, 0x00, 0x00, 0x00, 0x3d, 0xde, 0x30
 #elif defined (FIRMWARE_3_15)
 #define FIRMWARE 3_15
 #define SHELLCODE_ADDR_BASE	0x80, 0x00, 0x00, 0x00, 0x00, 0x3d, 0xde, 0x30
@@ -64,13 +68,20 @@
 
 #define PORT1_NUM_CONFIGS	4
 
+const uint8_t PROGMEM jig_response[64] = {
+	SHELLCODE_PTR,
+	SHELLCODE_ADDRESS,
+	RTOC_TABLE,
+	default_shellcode_macro,
+};
+
 #else /* USE_JIG */
 #define default_shellcode shellcode_egghunt
 #define default_shellcode_macro shellcode_egghunt_macro
 
 #define PAYLOAD dump_lv2
 
-#define SHELLCODE_ADDR_BASE	0x80, 0x00, 0x00, 0x00, 0x00, 0x4E, 0x00, 0x00
+#define SHELLCODE_ADDR_BASE	0x80, 0x00, 0x00, 0x00, 0x00, 0x50, 0x00, 0x00
 
 #define SHELLCODE_PAGE		SHELLCODE_ADDR_BASE
 #define SHELLCODE_DESTINATION	SHELLCODE_ADDR_BASE + 0x20
@@ -78,6 +89,10 @@
 #define SHELLCODE_ADDRESS	SHELLCODE_ADDR_BASE + 0x38
 
 #define PORT1_NUM_CONFIGS	100
+
+const uint8_t PROGMEM jig_response[64] = {
+	"THIS IS THE JIG BUFFER RESPONSE"
+};
 
 #endif /* USE_JIG */
 
@@ -113,13 +128,6 @@
 #define PORT3_DESC_LEN		0xa4d
 #define PORT3_DESC_LEN_HI	((PORT3_DESC_LEN >> 8) & 0xFF)
 #define PORT3_DESC_LEN_LO	(PORT3_DESC_LEN & 0xFF)
-
-const uint8_t PROGMEM jig_response[64] = {
-	SHELLCODE_PTR,
-	SHELLCODE_ADDRESS,
-	RTOC_TABLE,
-	default_shellcode_macro,
-};
 
 const uint8_t PROGMEM HUB_Device_Descriptor[] = {
 	0x12, 0x01, 0x00, 0x02, 0x09, 0x00, 0x01, 0x08,
